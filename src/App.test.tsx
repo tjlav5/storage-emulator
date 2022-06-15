@@ -23,7 +23,7 @@ test("without render helper", async () => {
   await uploadString(r, "fooooo");
   console.log("end");
 
-  expect(true).toBeTrue();
+  expect(true).toBe(true);
 });
 
 test("with render helper", async () => {
