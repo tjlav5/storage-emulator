@@ -26,7 +26,7 @@ test("without render helper", async () => {
   expect(true).toBeTrue();
 });
 
-test("renders learn react link", async () => {
+test("with render helper", async () => {
   const { getByText } = await renderWithStorage(async (storage) => {
     const r = ref(storage, "foo.txt");
     const someBytes = Uint8Array.from(Buffer.from(new ArrayBuffer(500_000)));
