@@ -8,6 +8,7 @@ import {
   getStorage,
   ref,
   uploadBytes,
+  uploadString,
 } from "firebase/storage";
 import { act } from "react-dom/test-utils";
 
@@ -16,8 +17,13 @@ test("renders learn react link", async () => {
     const r = ref(storage, "foo.txt");
     const someBytes = Uint8Array.from(Buffer.from(new ArrayBuffer(500_000)));
 
-    console.log("start");
-    await uploadBytes(r, someBytes);
+    console.log("start", { r, someBytes });
+    try {
+      // await uploadBytes(r, someBytes);
+      await uploadString(r, "foo");
+    } catch (e) {
+      console.log({ e });
+    }
     console.log("end");
 
     return <div>Hello</div>;
@@ -30,16 +36,6 @@ test("renders learn react link", async () => {
 const TEST_ID = "async-storage-loaded";
 
 async function renderWithStorage(childrenFn) {
-  return render(<AsyncComponent r={childrenFn} />);
-}
-
-const AsyncComponent: React.FC<{
-  r: (storage: FirebaseStorage) => Promise<React.ReactElement>;
-}> = ({ r }) => {
-  const [storageChildren, setStorageChildren] = useState<JSX.Element | null>(
-    null
-  );
-
   const hostAndPort = process.env.FIREBASE_STORAGE_EMULATOR_HOST;
   if (!hostAndPort) {
     throw new Error(
@@ -50,10 +46,21 @@ const AsyncComponent: React.FC<{
   console.log({ host, port });
 
   const app = initializeApp({
-    projectId: `foo-${Date.now}`,
+    projectId: `sample`,
   });
   const storage = getStorage(app, "gs://foo.appspot.com");
   connectStorageEmulator(storage, host, Number(port));
+
+  return render(<AsyncComponent r={childrenFn} storage={storage} />);
+}
+
+const AsyncComponent: React.FC<{
+  storage: FirebaseStorage;
+  r: (storage: FirebaseStorage) => Promise<React.ReactElement>;
+}> = ({ storage, r }) => {
+  const [storageChildren, setStorageChildren] = useState<JSX.Element | null>(
+    null
+  );
 
   useEffect(() => {
     r(storage).then((c) => {
