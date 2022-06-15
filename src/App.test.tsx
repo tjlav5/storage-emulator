@@ -3,6 +3,7 @@ import App from "./App";
 import { useEffect, useState } from "React";
 import { initializeApp } from "firebase/app";
 import {
+  connectStorageEmulator,
   FirebaseStorage,
   getStorage,
   ref,
@@ -39,10 +40,20 @@ const AsyncComponent: React.FC<{
     null
   );
 
+  const hostAndPort = process.env.FIREBASE_STORAGE_EMULATOR_HOST;
+  if (!hostAndPort) {
+    throw new Error(
+      "Provide storage emulator address by setting FIREBASE_STORAGE_EMULATOR_HOST"
+    );
+  }
+  const [host, port] = hostAndPort.split(":");
+  console.log({ host, port });
+
   const app = initializeApp({
     projectId: `foo-${Date.now}`,
   });
   const storage = getStorage(app, "gs://foo.appspot.com");
+  connectStorageEmulator(storage, host, Number(port));
 
   useEffect(() => {
     r(storage).then((c) => {
