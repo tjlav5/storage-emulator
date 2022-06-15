@@ -8,9 +8,23 @@ import {
   getStorage,
   ref,
   uploadBytes,
+  uploadBytesResumable,
   uploadString,
 } from "firebase/storage";
 import { act } from "react-dom/test-utils";
+
+test("without render helper", async () => {
+  const storage = getEmulatedStorage();
+  const r = ref(storage, "foo.txt");
+
+  console.log({ storage, r });
+
+  console.log("start");
+  await uploadString(r, "fooooo");
+  console.log("end");
+
+  expect(true).toBeTrue();
+});
 
 test("renders learn react link", async () => {
   const { getByText } = await renderWithStorage(async (storage) => {
@@ -19,8 +33,8 @@ test("renders learn react link", async () => {
 
     console.log("start", { r, someBytes });
     try {
-      // await uploadBytes(r, someBytes);
-      await uploadString(r, "foo");
+      await uploadBytesResumable(r, someBytes);
+      // await uploadString(r, "foo");
     } catch (e) {
       console.log({ e });
     }
@@ -35,7 +49,7 @@ test("renders learn react link", async () => {
 
 const TEST_ID = "async-storage-loaded";
 
-async function renderWithStorage(childrenFn) {
+function getEmulatedStorage() {
   const hostAndPort = process.env.FIREBASE_STORAGE_EMULATOR_HOST;
   if (!hostAndPort) {
     throw new Error(
@@ -51,6 +65,11 @@ async function renderWithStorage(childrenFn) {
   const storage = getStorage(app, "gs://foo.appspot.com");
   connectStorageEmulator(storage, host, Number(port));
 
+  return storage;
+}
+
+async function renderWithStorage(childrenFn) {
+  const storage = getEmulatedStorage();
   return render(<AsyncComponent r={childrenFn} storage={storage} />);
 }
 
